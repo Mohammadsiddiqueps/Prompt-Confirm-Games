@@ -13,7 +13,6 @@ function getRandomNumbers(times, string) {
 
 function createGround(limit, bombPositions) {
   let ground = "";
-  console.log(bombPositions);
 
   for (let createdCells = 1; createdCells <= limit; createdCells++) {
     if (bombPositions.includes(" " + createdCells + ",")) {
@@ -145,43 +144,44 @@ function getStyledGround(openedCells, mineMap) {
   return mineGround;
 }
 
-let openedCells = " ";
 const bombPositions = getRandomNumbers(10, "");
 const ground = createGround(100, bombPositions);
 const mineMap = setMineCount(ground);
+let openedCells = " ";
 
 console.log("let's see your tactics");
 console.log("  💥💣 𝐌 𝑰𝐍 𝑬 𝐒Ꮤ 𝑬 𝑬 𝐏 𝑬 Ʀ 💣💣 💥💥💣");
-console.log(getStyledGround(openedCells + "\n" + mineMap));
+console.log(getStyledGround(openedCells + "\n", mineMap));
+let isGameDone = false;
 
-while (true) {
+while (!isGameDone) {
   const inputCellNumber = prompt("Enter Cell No to continue || Enter e to exit");
-  if (!openedCells.includes(" " + inputCellNumber + ",") && inputCellNumber < 101 && inputCellNumber > 0) {
+  const isInputInRange = inputCellNumber < 101 && inputCellNumber > 0;
+
+  if (!openedCells.includes(" " + inputCellNumber + ",") && isInputInRange) {
     openedCells = openedCells + inputCellNumber + ", ";
   }
 
-  if (inputCellNumber === "e") {
-    break;
-  }
-
   console.clear();
+
   if (mineMap[inputCellNumber - 1] === "B") {
     console.log("Bomb Blasted 💥 💥 💥, You are a loser......");
     openedCells = openedCells + bombPositions;
-    break;
+    isGameDone = true;
   }
 
-  console.log("  💥💣 𝐌 𝑰𝐍 𝑬 𝐒Ꮤ 𝑬 𝑬 𝐏 𝑬 Ʀ 💣💣 💥💥💣");
-  console.log(getStyledGround(openedCells, mineMap));
-
+  if (inputCellNumber === "e") {
+    console.log("Why are you so cruel; anyWay bie see you again;");
+    isGameDone = true;
+  }
 
   if (openedCells.split(",").length - 1 === 91) {
     openedCells = openedCells + bombPositions;
     console.log("Nice tactics, you got it 🏅 🏆");
     console.log("You are a Genius. You are Selected>>>>👑 👑");
-    break;
+    isGameDone = true
   }
+
+  console.log("  💥💣 𝐌 𝑰𝐍 𝑬 𝐒Ꮤ 𝑬 𝑬 𝐏 𝑬 Ʀ 💣💣 💥💥💣");
+  console.log(getStyledGround(openedCells, mineMap));
 }
-console.log("move message");
-console.log("  💥💣 𝐌 𝑰𝐍 𝑬 𝐒Ꮤ 𝑬 𝑬 𝐏 𝑬 Ʀ 💣💣 💥💥💣");
-console.log(getStyledGround(openedCells, mineMap));
