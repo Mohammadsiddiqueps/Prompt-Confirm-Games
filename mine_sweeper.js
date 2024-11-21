@@ -144,7 +144,7 @@ function getStyledGround(openedCells, mineMap) {
   return mineGround;
 }
 
-const bombPositions = getRandomNumbers(10, "");
+const bombPositions = getRandomNumbers(15, "");
 const ground = createGround(100, bombPositions);
 const mineMap = setMineCount(ground);
 let openedCells = " ";
@@ -170,12 +170,16 @@ while (!isGameDone) {
     isGameDone = true;
   }
 
+  if (mineMap[inputCellNumber - 1] === "0") {
+    openedCells = openNearCells(inputCellNumber, mineMap);
+  }
+
   if (inputCellNumber === "e") {
     console.log("Why are you so cruel; anyWay bie see you again;");
     isGameDone = true;
   }
 
-  if (openedCells.split(",").length - 1 === 91) {
+  if (openedCells.split(",").length - 1 === 90) {
     openedCells = openedCells + bombPositions;
     console.log("Nice tactics, you got it 🏅 🏆");
     console.log("You are a Genius. You are Selected>>>>👑 👑");
@@ -185,3 +189,13 @@ while (!isGameDone) {
   console.log("  💥💣 𝐌 𝑰𝐍 𝑬 𝐒Ꮤ 𝑬 𝑬 𝐏 𝑬 Ʀ 💣💣 💥💥💣");
   console.log(getStyledGround(openedCells, mineMap));
 }
+
+//winners List.....
+//Praveen
+//likitha g, akash, sushanth
+//dhanoj
+//aman shabbas , shrutika
+//Hima Sai
+
+// feedback 
+// very good game good siddique you are cool
