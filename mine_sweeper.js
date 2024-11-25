@@ -1,24 +1,35 @@
-function getRandomNumbers(times, string) {
-  const randomNumber = " " + (Math.floor(Math.random() * 100)) + ",";
-  if (times < 1) {
-    return string;
+const NO_OF_BOMBS = 15;
+const CELL_COUNT = 100;
+const HYPHEN = "-";
+const LINE_LENGTH = 49;
+const SAFE_CELLS = CELL_COUNT - NO_OF_BOMBS;
+
+function getRandomNumbers(noOfBombs) {
+  let bombPositions = "";
+  let bombCount = 0;
+
+  while (bombCount < noOfBombs) {
+    const randomNumber = " " + ((Math.floor(Math.random() * 100))) + ",";
+
+    if (bombPositions.includes(randomNumber)) {
+      continue;
+    }
+
+    bombPositions += randomNumber;
+    bombCount++;
   }
 
-  if (string.includes(randomNumber)) {
-    return getRandomNumbers(times, string);
-  }
-
-  return getRandomNumbers(times - 1, string + randomNumber);
+  return bombPositions;
 }
 
 function createGround(limit, bombPositions) {
   let ground = "";
 
-  for (let createdCells = 1; createdCells <= limit; createdCells++) {
-    if (bombPositions.includes(" " + createdCells + ",")) {
-      ground = ground + "B";
+  for (let cellCount = 1; cellCount <= limit; cellCount++) {
+    if (bombPositions.includes(" " + cellCount + ",")) {
+      ground += "B";
     } else {
-      ground = ground + "0";
+      ground += "0";
     }
   }
 
@@ -46,81 +57,90 @@ function getPosToIncrement(index) {
   return firstValues + secondValues;
 }
 
-function getIncrementedString(string, posToIncrement) {
+function getIncrementedString(mineMap, posToIncrement) {
   let incrementedString = "";
 
-  for (let cell = 0; cell < string.length; cell++) {
-    if (posToIncrement.includes(("," + (cell + 1) + ",")) && string[cell] !== "B") {
-      let incrementedChar = +string[cell];
-      incrementedString = incrementedString + ++incrementedChar;
+  for (let cell = 0; cell < mineMap.length; cell++) {
+    if (posToIncrement.includes(("," + (cell + 1) + ",")) && mineMap[cell] !== "B") {
+      let incrementedChar = +mineMap[cell];
+      incrementedString += ++incrementedChar;
     } else {
-      incrementedString = incrementedString + string[cell];
+      incrementedString += mineMap[cell];
     }
   }
 
   return incrementedString;
 }
 
-function setMineCount(string) {
-  for (let index = 0; index < string.length; index++) {
-    if (string[index] === "B") {
+function setMineCount(mineMap) {
+  for (let index = 0; index < mineMap.length; index++) {
+    if (mineMap[index] === "B") {
       const posToIncrement = getPosToIncrement(index + 1);
-      string = getIncrementedString(string, posToIncrement);
+      mineMap = getIncrementedString(mineMap, posToIncrement);
     }
   }
 
-  return string;
+  return mineMap;
 }
 
-function getOuterLine() {
-  const hyphen = "-";
+function getLine() {
   let line = "";
 
-  for (let lineLength = 0; lineLength < 49; lineLength++) {
-    line = line + hyphen;
+  for (let lineLength = 0; lineLength < LINE_LENGTH; lineLength++) {
+    line += HYPHEN;
   }
 
   return line;
 }
 
-function getNumberToPrint(cellNo, openedCells, string, flagedCells) {
-  if (openedCells.includes(" " + cellNo + ",")) {
-    if (string[cellNo - 1] === "0") {
-      return " 0️⃣ ";
-    }
-
-    if (string[cellNo - 1] === "1") {
-      return " 1️⃣ ";
-    }
-
-    if (string[cellNo - 1] === "2") {
-      return " 2️⃣ ";
-    }
-
-    if (string[cellNo - 1] === "3") {
-      return " 3️⃣ ";
-    }
-
-    if (string[cellNo - 1] === "4") {
-      return " 4️⃣ ";
-    }
-
-    return " 💣";
+function getEmojiToPrint(cellValue) {
+  switch (cellValue) {
+    case "0": return " 0️⃣ ";
+    case "1": return " 1️⃣ ";
+    case "2": return " 2️⃣ ";
+    case "3": return " 3️⃣ ";
+    case "4": return " 4️⃣ ";
   }
 
-  if (flagedCells.includes((" " + (cellNo) + ","))) {
+  return " 💣";
+}
+
+function getCharToPrint(cellNo, openedCells, string, flagedCells) {
+  if (flagedCells.includes((" " + cellNo + ","))) {
     return " 🚩";
+  }
+
+  if (openedCells.includes(" " + cellNo + ",")) {
+    return getEmojiToPrint(string[cellNo - 1])
   }
 
   if (cellNo < 10) {
     return " 0" + cellNo;
   }
 
-  if (cellNo === 100) {
+  if (cellNo >= 100) {
     return cellNo;
   }
 
   return " " + cellNo;
+}
+
+function getStyledGround(openedCells, mineMap, flagedCells) {
+  const line = getLine(LINE_LENGTH);
+  let mineGround = "\n " + line + "\n";
+
+  for (let cellNo = 1; cellNo <= CELL_COUNT; cellNo++) {
+    const character = getCharToPrint(cellNo, openedCells, mineMap, flagedCells);
+    const cellDesign = "┃" + character + " ";
+
+    if (cellNo % 10 === 0) {
+      mineGround += cellDesign + "┃\n┃" + line + "┃\n";
+    } else {
+      mineGround += cellDesign;
+    }
+  }
+
+  return mineGround;
 }
 
 function openNearCells(openedCells, index) {
@@ -144,99 +164,94 @@ function openNearCells(openedCells, index) {
   return openedCells + firstValues + secondValues + ' ';
 }
 
-function getStyledGround(openedCells, mineMap, flagedCells) {
-  const horizontalOuterLine = getOuterLine();
-  let mineGround = "\n " + horizontalOuterLine + "\n";
+function getBorderedMessage(message) {
+  const line = getLine(LINE_LENGTH);
 
-  for (let cellNo = 1; cellNo <= 100; cellNo++) {
-    const character = getNumberToPrint(cellNo, openedCells, mineMap, flagedCells);
-
-    if (cellNo === 100) {
-      mineGround = mineGround + "┃" + character + " ";
-    }
-
-    if (cellNo >= 10 && cellNo < 100) {
-
-      mineGround = mineGround + "┃" + character + " ";
-    }
-
-    if (cellNo < 10) {
-      mineGround = mineGround + "┃" + character + " ";
-    }
-
-    if (cellNo % 10 === 0) {
-      mineGround = mineGround + "┃\n┃" + horizontalOuterLine + "┃\n";
-    }
-  }
-
-  return mineGround;
+  return line + "\n        " + message + "            \n" + line;
 }
 
-const bombPositions = getRandomNumbers(15, "");
-const ground = createGround(100, bombPositions);
-const mineMap = setMineCount(ground);
-let openedCells = " ";
-let flagedCells = "";
+function printBoardAndMessage(message) {
+  console.clear();
+  console.log(getBorderedMessage(message));
+  console.log("\n💣 💣 💥 💥💣 𝐌 𝑰𝐍 𝑬 𝐒Ꮤ 𝑬 𝑬 𝐏 𝑬 Ʀ 💣 💣 💥 💥 💣");
+  console.log(getStyledGround(openedCells, mineMap, flagedCells));
+}
 
-console.log("let's see your tactics 🤘 🤘");
-console.log("\n💣 💣 💥 💥💣 𝐌 𝑰𝐍 𝑬 𝐒Ꮤ 𝑬 𝑬 𝐏 𝑬 Ʀ 💣 💣 💥 💥 💣");
-console.log(getStyledGround(openedCells + "\n", mineMap, flagedCells));
+function getUserInput() {
+  const input = prompt("Enter Cell No to continue || Enter e to exit || Enter f to flag");
+  const isInputInRange = input <= CELL_COUNT && input > 0;
+  const isValidInput = (input === "f" || input === "e");
+  const isFlaged = flagedCells.includes(" " + input + ",");
+  const isOpened = openedCells.includes(" " + input + ",");
+
+  if (!(isInputInRange || isValidInput) || isFlaged || isOpened) {
+    console.log("Don't Enter flaged || opened cells || invalid values");
+    return getUserInput();
+  }
+
+  return input;
+}
+
+function processInput(input, flagedCells, openedCells, mineMap) {
+  if (mineMap[input - 1] === "B") {
+    printBoardAndMessage("Bomb Blasted 💥 💥 💥, You have losed......");
+  }
+
+  if (openedCells.split(",").length > SAFE_CELLS) {
+    printBoardAndMessage("Nice tactics, you got it 🏅 🏆\nYou are a Genius. You are Selected>>>>👑 👑");
+  }
+}
+
+const bombPositions = getRandomNumbers(NO_OF_BOMBS);
+const mineGround = createGround(CELL_COUNT, bombPositions);
+const mineMap = setMineCount(mineGround);
+let openedCells = " ";
+let flagedCells = " ";
 let isGameDone = false;
 
-while (!isGameDone) {
-  const inputCellNumber = prompt("Enter Cell No to continue || Enter e to exit || Enter f to flag");
-  const isInputInRange = inputCellNumber < 101 && inputCellNumber > 0;
+printBoardAndMessage("let's see your tactics 🤘 🤘");
 
-  if (inputCellNumber === "f") {
+while (!isGameDone) {
+  const input = getUserInput();
+
+  //flag case...........
+  if (input === "f") {
     const inputToFlag = prompt("Enter the CellNo to flag: ");
     flagedCells = flagedCells + (" " + inputToFlag + ",")
-    console.clear();
-    console.log("\n💣 💣 💥 💥💣 𝐌 𝑰𝐍 𝑬 𝐒Ꮤ 𝑬 𝑬 𝐏 𝑬 Ʀ 💣 💣 💥 💥 💣");
-    console.log(getStyledGround(openedCells, mineMap, flagedCells));
+    printBoardAndMessage("NIce You Have flaged Successfully");
     continue;
   }
 
-  if (flagedCells.includes(" " + inputCellNumber + ",")) {
-    console.log("\n🚫 🚫You can't open flagged cell 🚫 🚫");
-    continue;
-  }
-
-  if (!openedCells.includes(" " + inputCellNumber + ",") && isInputInRange) {
-    openedCells = openedCells + inputCellNumber + ", ";
-
-    if (mineMap[inputCellNumber - 1] === "0") {
-      openedCells = openNearCells(openedCells, +inputCellNumber, mineMap);
-    }
-  }
-
-  console.clear();
-
-  if (mineMap[inputCellNumber - 1] === "B") {
-    flagedCells = "";
-    console.log("Bomb Blasted 💥 💥 💥, You are a loser......");
-    openedCells = openedCells + bombPositions;
-    isGameDone = true;
-  }
-
-  if (inputCellNumber === "e") {
-    flagedCells = "";
+  //exit case.....
+  if (input === "e") {
     console.log("Why are you so cruel; anyWay bie see you again;");
     isGameDone = true;
   }
 
-  if (openedCells.split(",").length - 1 > 84) {
-    flagedCells = "";
-    openedCells = openedCells + bombPositions;
-    console.log("Nice tactics, you got it 🏅 🏆");
-    console.log("You are a Genius. You are Selected>>>>👑 👑");
-    isGameDone = true
+  //cell open case..
+  if (!openedCells.includes(" " + input + ",")) {
+    openedCells = openedCells + +input + ", ";
+
+    if (mineMap[input - 1] === "0") {
+      openedCells = openNearCells(openedCells, +input, mineMap);
+    }
+
+    printBoardAndMessage("NIce MOve");
   }
 
-  console.log("\n💣 💣 💥 💥💣 𝐌 𝑰𝐍 𝑬 𝐒Ꮤ 𝑬 𝑬 𝐏 𝑬 Ʀ 💣 💣 💥 💥 💣");
-  console.log(getStyledGround(openedCells, mineMap, flagedCells));
+  // game finish case....
+  if (openedCells.split(",").length > SAFE_CELLS || mineMap[input - 1] === "B") {
+    flagedCells = "";
+    openedCells = openedCells + bombPositions;
+    isGameDone = true;
+    processInput(input, flagedCells, openedCells, mineMap);
+  }
+
   
 }
 
+// console.log(bombPositions);
+// console.log(openedCells.split(",").length - 1);
 //winners List.....
 //Praveen
 //likitha g, akash, sushanth
@@ -248,6 +263,11 @@ while (!isGameDone) {
 //shrutika
 //sameera bhanu
 // mounika
+//siddique
+//devadatta, anagh, rohini
+//rohini, krishnanand
+//Dhanoj
+//sameera , sai ram
 
 // feedback 
 // very good game good siddique you are cool
