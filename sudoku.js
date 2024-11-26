@@ -1,5 +1,6 @@
 const HYPHEN = "-";
 const DOUBLE_LINE = "═";
+const NO_OF_CHANCES = 5;
 
 function isInRow(index, numberToCheck, sudokuMap) {
   const startCell = index - (index % 9);
@@ -142,7 +143,7 @@ function openRandomCells(sudokuMap) {
       openedMap += sudokuMap[index];
     }
   }
-  
+
   return openedMap;
 }
 
@@ -199,17 +200,17 @@ function openInputCell(openedCells, inputIndex, input) {
 
 function getCursorPos(currentPos, input) {
   switch (input) {
-    case "a" : return currentPos > 1 ? currentPos - 1 : currentPos;
-    case "d" : return currentPos < 81 ? currentPos + 1 : currentPos;
-    case "w" : return currentPos > 9 ? currentPos - 9 : currentPos;
-    case "s" : return currentPos < 73 ? currentPos + 9 : currentPos;
+    case "a": return currentPos > 1 ? currentPos - 1 : currentPos;
+    case "d": return currentPos < 81 ? currentPos + 1 : currentPos;
+    case "w": return currentPos > 9 ? currentPos - 9 : currentPos;
+    case "s": return currentPos < 73 ? currentPos + 9 : currentPos;
   }
 }
 
 function getInput() {
   const input = prompt("Enter Left --> A | Up --> W | down --> S | Right --> D| Exit --> E | AddValue --> Q");
   let inputsString = "awsdeq";
-  if (!inputsString.includes("" + input)) {
+  if (!inputsString.includes("" + input) || input === "") {
     console.log("Enter Valid Input Buddy ❌ ❌");
     return getInput();
   }
@@ -217,37 +218,46 @@ function getInput() {
   return input;
 }
 
-let isGameNotDone = true;
-let cursorPos = 1;
-const sudokuMap = getPuzzle(getMapStructure(), 0, "");
-let openedMap = openRandomCells(sudokuMap);
-let noOfChances = 5;
-
-while (noOfChances > 0) {
+function printBoard(openedMap, cursorPos, noOfChances) {
   console.clear();
   console.log("\n      🔢  Sudoku 🔢")
   console.log(getStyledGround(openedMap, cursorPos));
   console.log("NO OF CHANCES REMAINING : ", noOfChances, "\n");
+}
 
-  if (sudokuMap === openedMap) {
-    console.log("you Won the game...")
-    break;
+function playSudoku(sudokuMap, openedMap, cursorPos, noOfChances) {
+  if (noOfChances < 1) {
+    return "Your chances are done..";
   }
+
+  printBoard(openedMap, cursorPos, noOfChances);
+  if (sudokuMap === openedMap) {
+    return "you Won the game...🏆🏆\n";
+  }
+
   const input = getInput();
 
-  if(input === "e") {
-    break;
+  if (input === "e") {
+    return "This is not good...";
   }
 
   if (input === "q") {
     const inputCellValue = prompt("Enter value to input in  : ");
+
     if (sudokuMap[cursorPos - 1] === inputCellValue) {
-      openedMap = openInputCell(openedMap, cursorPos - 1, inputCellValue);
-    } else {
-      noOfChances--;
-      console.log("given input is wrong");
+      return playSudoku(sudokuMap, openInputCell(openedMap, cursorPos - 1, inputCellValue), cursorPos, noOfChances)
     }
-  } else {
-    cursorPos = getCursorPos(cursorPos, input);
+
+    return playSudoku(sudokuMap, openedMap, cursorPos, noOfChances - 1);
   }
+
+  return playSudoku(sudokuMap, openedMap, getCursorPos(cursorPos, input), noOfChances);
 }
+
+const sudokuMap = getPuzzle(getMapStructure(), 0, "");
+let openedMap = openRandomCells(sudokuMap);
+console.log(playSudoku(sudokuMap, openedMap, 1, NO_OF_CHANCES));
+
+// sai venkat top scorer
+// Karthikeya
+//rohini
