@@ -1,6 +1,10 @@
 const HYPHEN = "-";
 const DOUBLE_LINE = "═";
 const NO_OF_CHANCES = 5;
+const EMPTY_CELL = "⬜";
+const OPENED_CELL = " 🟥 ";
+const OPENABLE_CELL = " 🟩 ";
+const NO_OF_CELLS_TO_OPEN = 30;
 
 function isInRow(index, numberToCheck, sudokuMap) {
   const startCell = index - (index % 9);
@@ -67,11 +71,8 @@ function getModifiedMap(sudokuMap, indexToAdd, number) {
   let addedMap = "";
 
   for (let index = 0; index < sudokuMap.length; index++) {
-    if (index === indexToAdd) {
-      addedMap += number;
-    } else {
-      addedMap += sudokuMap[index];
-    }
+    const valueToAdd = index === indexToAdd ? number : sudokuMap[index];
+    addedMap += valueToAdd;
   }
 
   return addedMap;
@@ -133,15 +134,12 @@ function getRandomCells(noOfCells, openedCells) {
 }
 
 function openRandomCells(sudokuMap) {
-  let openedCells = getRandomCells(30, "");
+  const openedCells = getRandomCells(NO_OF_CELLS_TO_OPEN, "");
   let openedMap = "";
 
   for (let index = 0; index < sudokuMap.length; index++) {
-    if (openedCells.includes("," + index + ",")) {
-      openedMap += "⬜";
-    } else {
-      openedMap += sudokuMap[index];
-    }
+    const isCellToOpen = openedCells.includes("," + index + ",");
+    openedMap += isCellToOpen ? EMPTY_CELL : sudokuMap[index];
   }
 
   return openedMap;
@@ -149,14 +147,14 @@ function openRandomCells(sudokuMap) {
 
 function getNumberToPrint(index, openedMap, cursorPos) {
   if (index === cursorPos) {
-    if (openedMap[cursorPos - 1] == "⬜") {
-      return " 🟩 ";
+    if (openedMap[cursorPos - 1] == EMPTY_CELL) {
+      return OPENABLE_CELL;
     }
 
-    return " 🟥 ";
+    return OPENED_CELL;
   }
 
-  if (openedMap[index - 1] == "⬜") {
+  if (openedMap[index - 1] === EMPTY_CELL) {
     return " " + openedMap[index - 1] + " ";
   }
 
@@ -188,11 +186,8 @@ function openInputCell(openedCells, inputIndex, input) {
   let openedMap = "";
 
   for (let index = 0; index < openedCells.length; index++) {
-    if (index === inputIndex) {
-      openedMap += input;
-    } else {
-      openedMap += openedCells[index]
-    }
+    const valueToAdd = index === inputIndex ? input : openedCells[index];
+    openedMap += valueToAdd;
   }
 
   return openedMap;
@@ -210,6 +205,7 @@ function getCursorPos(currentPos, input) {
 function getInput() {
   const input = prompt("Enter Left --> A | Up --> W | down --> S | Right --> D| Exit --> E | AddValue --> Q");
   let inputsString = "awsdeq";
+
   if (!inputsString.includes("" + input) || input === "") {
     console.log("Enter Valid Input Buddy ❌ ❌");
     return getInput();
@@ -258,6 +254,8 @@ const sudokuMap = getPuzzle(getMapStructure(), 0, "");
 let openedMap = openRandomCells(sudokuMap);
 console.log(playSudoku(sudokuMap, openedMap, 1, NO_OF_CHANCES));
 
+
+// Winners....
 // sai venkat top scorer
 // Karthikeya
 //rohini
